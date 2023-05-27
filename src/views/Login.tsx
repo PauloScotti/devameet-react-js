@@ -2,8 +2,10 @@ import logo from '../assets/images/logo.svg';
 import loginIcon from '../assets/images/mail.svg';
 import passwordIcon from '../assets/images/key.svg';
 import { PublicInput } from '../components/general/PublicInput';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { LoginServices } from '../services/LoginServices';
+import { Link, useSearchParams } from 'react-router-dom';
+import { AuthorizeContext } from '../App';
 
 const loginServices = new LoginServices();
 
@@ -14,6 +16,11 @@ export const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const [searchParams] = useSearchParams();
+    const success = searchParams.get('sucess');
+
+    const { setToken } = useContext(AuthorizeContext);
+
     const doLogin = async () => {
         try {
             setError('');
@@ -22,7 +29,8 @@ export const Login = () => {
             }
 
             setLoading(true);
-            await loginServices.login({ login, password });
+            await loginServices.login({ login, password }, setToken);
+
             setLoading(false);
         } catch (e: any) {
             console.log('Erro ao efetuar login', e);
@@ -39,6 +47,7 @@ export const Login = () => {
             <img src={logo} alt='Logo Devameet' className='logo' />
             <form>
                 {error && <p className='error'>{error}</p>}
+                {success && <p className='success'>Cadastro efetuado com sucesso, faça o login.</p>}
 
                 <PublicInput
                     icon={loginIcon}
@@ -63,7 +72,7 @@ export const Login = () => {
 
                 <div className='link'>
                     <p>Não possui uma conta?</p>
-                    <a>Faça seu cadastro agora!</a>
+                    <Link to='/register'>Faça seu cadastro agora!</Link>
                 </div>
             </form>
         </div>
