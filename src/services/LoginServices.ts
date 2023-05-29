@@ -14,7 +14,7 @@ export class LoginServices extends HttpApiServices {
                 const user = userResponse.data;
 
                 localStorage.setItem('id', user.id);
-                localStorage.setItem('nome', user.nome);
+                localStorage.setItem('name', user.name);
 
                 if (user.avatar) {
                     localStorage.setItem('avatar', user.avatar);
