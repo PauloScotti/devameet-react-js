@@ -8,18 +8,22 @@ import logoutIcon from '../assets/images/logout.svg';
 
 export const Profile = () => {
 
+    const mobile = window.innerWidth <= 992;
+
     const [image, setImage] = useState('');
 
     return (
         <>
-            <Header />
+            {!mobile && <Header />}
             <div className="container-profile">
                 <ActionHeader />
                 <AvatarInput image={image} setImage={setImage} />
                 <div className="input">
-                    <span>Nome</span>
-                    <input type="text" placeholder="Informe seu nome" />
-                    <img src={clearIcon} alt="Limpar" />
+                    <div>
+                        <span>Nome</span>
+                        <input type="text" placeholder="Informe seu nome" />
+                        <img src={clearIcon} alt="Limpar" />
+                    </div>
                 </div>
                 <div className="logout">
                     <div>
