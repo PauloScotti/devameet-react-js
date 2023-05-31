@@ -12,6 +12,10 @@
         font-family: $fontBold;
         font-size: 12px;
         cursor: pointer;
+
+        &.disabled {
+            cursor: not-allowed;
+        }
     }
 
     strong {
