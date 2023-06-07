@@ -30,7 +30,7 @@ export const MeetListItem: React.FC<MeetListItemProps> = ({ meet, selectToRemove
     return (
         <div className="container-meet-list-item">
             <div className="meet">
-                <div className="color" style={{ backgroundColor: '#' + meet.color }}></div>
+                <div className="color" style={{ backgroundColor: meet.color }}></div>
                 <span>{meet.name}</span>
             </div>
             <div className="actions">
