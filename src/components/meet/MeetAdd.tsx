@@ -19,7 +19,7 @@ export const MeetAdd = () => {
     }
 
     const isFormInvalid = !name || name.trim().length < 5
-        || !color || color.trim().length < 4
+        || !color || color.trim().length < 4;
 
     const doSave = async () => {
         try {
@@ -48,6 +48,7 @@ export const MeetAdd = () => {
                     color={color}
                     setName={setName}
                     setColor={setColor}
+                    isEdit={false}
                 />
                 <div className="form">
                     <span onClick={goBack}>Voltar</span>
