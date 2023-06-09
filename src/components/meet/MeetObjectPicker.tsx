@@ -8,7 +8,7 @@ type MeetObjectPickerType = {
     label: string,
     asset: any,
     selected: string,
-    setObject(s: string): void,
+    setObject(s: any): void,
 }
 
 export const MeetObjectPicker: React.FC<MeetObjectPickerType> = ({ image, label, asset, selected, setObject }) => {
@@ -17,15 +17,25 @@ export const MeetObjectPicker: React.FC<MeetObjectPickerType> = ({ image, label,
 
     const getImageFromObject = (object: string) => {
         if (object && object.trim().length > 0) {
-            const path = `../../assets/objects/${asset.path}/${object}${asset.camRotate ? '_front' : ''}.png`;
+            const path = `../../assets/objects/${asset.path}/${object}${asset.canRotate ? '_front' : ''}.png`;
             const imageUrl = new URL(path, import.meta.url);
             return imageUrl.href;
         }
     }
 
     const selectObject = (o: string) => {
-        console.log(o)
-        setObject(o);
+        const objectFinal = {
+            name: o,
+            x: asset.defaultXPosition,
+            y: asset.defaultYPosition,
+            zIndex: asset.defaultZIndex,
+            orientation: asset.canRotate ? 'front' : '',
+            type: asset.path,
+            flexStart: asset.flexStart,
+            selectMultiple: asset.selectMultiple,
+        }
+
+        setObject(objectFinal);
     }
 
     return (

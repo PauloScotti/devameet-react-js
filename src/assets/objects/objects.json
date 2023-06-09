@@ -2,7 +2,7 @@
     "wall": {
         "path": "wall",
         "selectMultiple": false,
-        "camRotate": false,
+        "canRotate": false,
         "defaultXPosition": 0,
         "defaultYPosition": 0,
         "defaultZIndex": 0,
@@ -16,7 +16,7 @@
     "floor": {
         "path": "floor",
         "selectMultiple": false,
-        "camRotate": false,
+        "canRotate": false,
         "defaultXPosition": 0,
         "defaultYPosition": 1,
         "defaultZIndex": 0,
@@ -33,7 +33,7 @@
     "rug": {
         "path": "rug",
         "selectMultiple": true,
-        "camRotate": false,
+        "canRotate": false,
         "defaultXPosition": 2,
         "defaultYPosition": 3,
         "defaultZIndex": 1,
@@ -46,7 +46,7 @@
     "table": {
         "path": "table",
         "selectMultiple": true,
-        "camRotate": false,
+        "canRotate": false,
         "defaultXPosition": 2,
         "defaultYPosition": 3,
         "defaultZIndex": 2,
@@ -62,7 +62,7 @@
     "chair": {
         "path": "chair",
         "selectMultiple": true,
-        "camRotate": true,
+        "canRotate": true,
         "defaultXPosition": 2,
         "defaultYPosition": 3,
         "defaultZIndex": 2,
@@ -78,7 +78,7 @@
     "couch": {
         "path": "couch",
         "selectMultiple": true,
-        "camRotate": true,
+        "canRotate": true,
         "defaultXPosition": 2,
         "defaultYPosition": 3,
         "defaultZIndex": 2,
@@ -91,7 +91,7 @@
     "decor": {
         "path": "decor",
         "selectMultiple": true,
-        "camRotate": false,
+        "canRotate": false,
         "defaultXPosition": 2,
         "defaultYPosition": 3,
         "defaultZIndex": 3,
@@ -109,7 +109,7 @@
     "nature": {
         "path": "nature",
         "selectMultiple": true,
-        "camRotate": false,
+        "canRotate": false,
         "defaultXPosition": 2,
         "defaultYPosition": 3,
         "defaultZIndex": 3,
