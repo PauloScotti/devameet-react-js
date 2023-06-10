@@ -169,6 +169,30 @@
                         left: 87.5%;
                     }
                 }
+
+                .preview {
+                    z-index: 50;
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    height: 100%;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: $greyColor1WithOpacity;
+                    position: absolute;
+
+                    img {
+                        position: relative;
+                        margin-bottom: 3%;
+                        cursor: auto;
+                    }
+
+                    button {
+                        width: 35%;
+                        border: 2px solid white;
+                        background-color: transparent;
+                    }
+                }
             }
 
             .actions {

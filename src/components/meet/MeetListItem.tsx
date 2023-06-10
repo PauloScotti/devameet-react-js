@@ -7,10 +7,12 @@ import { useNavigate } from 'react-router-dom';
 
 type MeetListItemProps = {
     meet: any,
+    selected: string,
+    selectMeet(meet: any): void,
     selectToRemove(id: string): void
 }
 
-export const MeetListItem: React.FC<MeetListItemProps> = ({ meet, selectToRemove }) => {
+export const MeetListItem: React.FC<MeetListItemProps> = ({ meet, selectToRemove, selectMeet, selected }) => {
     const mobile = window.innerWidth <= 992;
 
     const navigate = useNavigate();
@@ -29,9 +31,9 @@ export const MeetListItem: React.FC<MeetListItemProps> = ({ meet, selectToRemove
 
     return (
         <div className="container-meet-list-item">
-            <div className="meet">
+            <div className="meet" onClick={() => selectMeet(meet)} >
                 <div className="color" style={{ backgroundColor: meet.color }}></div>
-                <span>{meet.name}</span>
+                <span className={selected === meet?.id ? 'selected' : ''}>{meet.name}</span>
             </div>
             <div className="actions">
                 {mobile && <img src={roomIcon} alt='Entrar na reunião' onClick={goToRoom} />}
