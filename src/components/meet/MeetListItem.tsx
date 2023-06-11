@@ -26,7 +26,11 @@ export const MeetListItem: React.FC<MeetListItemProps> = ({ meet, selectToRemove
     }
 
     const copyLink = () => {
-        navigator.clipboard.writeText(window?.location?.href + 'room/' + meet?.link)
+        if (mobile) {
+            navigator.clipboard.writeText(meet?.link);
+        } else {
+            navigator.clipboard.writeText(window?.location?.href + 'room/' + meet?.link);
+        }
     }
 
     return (
