@@ -1,0 +1,32 @@
+import { io } from 'socket.io-client';
+
+class PeerConnectionSession {
+
+    _room?: string;
+    _userId?: string;
+    socket: any;
+
+    constructor(socket: any) {
+        this.socket = socket
+    }
+
+    joinRoom(link: string, userId: string) {
+        this._room = link;
+        this._userId = userId;
+        this.socket.emit('join', { link, userId });
+    }
+
+    onUpdateUserList(callback: any) {
+        this.socket.on(`${this._room}-update-user-list`, ({ users }: any) => {
+            callback(users);
+        });
+    }
+}
+
+export const createPeerConnectionContext = () => {
+    const { VITE_PUBLIC_WS_URL } = import.meta.env;
+
+    const socket = io(VITE_PUBLIC_WS_URL);
+
+    return new PeerConnectionSession(socket);
+}

@@ -4,15 +4,20 @@ import copyIcon from "../../assets/images/copy.svg";
 import { useNavigate, useParams } from "react-router-dom";
 import { RoomObjects } from "./RoomObjects";
 import { RoomServices } from "../../services/RoomServices";
+import { createPeerConnectionContext } from "../../services/WebSocketServices";
 
 const roomServices = new RoomServices();
+const wsServices = createPeerConnectionContext();
 
 export const RommHome = () => {
   const navigate = useNavigate();
   const [objects, setObjects] = useState([]);
+  const [connectedUsers, setConnectedUsers] = useState([]);
+  const [me, setMe] = useState<any>({});
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
   const { link } = useParams();
+  const userId = localStorage.getItem('id') || '';
 
   const getRoom = async () => {
     try {
@@ -45,7 +50,24 @@ export const RommHome = () => {
     getRoom();
   }, []);
 
-  const enterRoom = () => {};
+  const enterRoom = () => {
+    if (!link || !userId) {
+      return navigate('/');
+    }
+    wsServices.joinRoom(link, userId);
+    wsServices.onUpdateUserList(async (users: any) => {
+      if (users) {
+        setConnectedUsers(users);
+        localStorage.setItem('connectedUsers', JSON.stringify(users));
+
+        const me = users.find((u: any) => u.user === userId);
+        if (me) {
+          setMe(me);
+          localStorage.setItem('me', JSON.stringify(me));
+        }
+      }
+    })
+  };
 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -67,7 +89,12 @@ export const RommHome = () => {
                 </div>
                 <p style={{ color }}>{name}</p>
               </div>
-              <RoomObjects objects={objects} enterRoom={enterRoom} />
+              <RoomObjects
+                objects={objects}
+                enterRoom={enterRoom}
+                connectedUsers={connectedUsers}
+                me={me}
+              />
             </>
           ) : (
             <div className="empty">
