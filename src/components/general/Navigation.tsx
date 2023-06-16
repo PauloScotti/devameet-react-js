@@ -28,13 +28,13 @@ export const Navigation = () => {
             case 'home':
                 if (location.pathname !== '/user' &&
                     location.pathname !== '/link' &&
-                    location.pathname !== '/room') {
+                    !location.pathname.includes('/room')) {
                     return homeIconActive;
                 }
                 return homeIcon;
             case 'room':
                 if (location.pathname === '/link' ||
-                    location.pathname === '/room') {
+                    location.pathname.includes('/room')) {
                     return linkIconActive;
                 }
                 return linkIcon;
