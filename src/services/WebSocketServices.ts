@@ -21,6 +21,21 @@ class PeerConnectionSession {
             callback(users);
         });
     }
+
+    onRemoveUserList(callback: any) {
+        this.socket.on(`${this._room}-remove-user`, ({ socktId }: any) => {
+            callback(socktId);
+        });
+    }
+
+    updateUserMovement(data: any) {
+        this.socket.emit('move', data);
+    }
+
+    updateUserMute(data: any) {
+        console.log('data ', data);
+        this.socket.emit('toggl-mute-user', data);
+    }
 }
 
 export const createPeerConnectionContext = () => {

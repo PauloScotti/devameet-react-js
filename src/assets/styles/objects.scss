@@ -110,6 +110,114 @@
         }
       }
     }
+
+    .user-avatar {
+      position: absolute;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      div {
+        background-color: $greyColor5;
+        border: 1.5px solid $primaryColor4;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        padding: 4px 8px;
+
+        &.muted {
+          border-color: $muted;
+        }
+
+        span {
+          font-weight: 500;
+          line-height: 11px;
+          color: $primaryColor4;
+
+          &.muted {
+            color: $muted;
+          }
+        }
+      }
+
+      img {
+        position: relative;
+      }
+
+      &.row-one {
+        top: 10.5;
+      }
+
+      &.row-two {
+        top: 2%;
+      }
+
+      &.row-three {
+        top: 14.5%;
+      }
+
+      &.row-four {
+        top: 27%;
+      }
+
+      &.row-five {
+        top: 39.5%;
+      }
+
+      &.row-six {
+        top: 52%;
+      }
+
+      &.row-seven {
+        top: 62.5%;
+      }
+
+      &.row-eight {
+        top: 77%;
+      }
+
+      &.column-one {
+        left: -4.5;
+      }
+
+      &.column-two {
+        left: 8%;
+      }
+
+      &.column-three {
+        left: 20.5%;
+      }
+
+      &.column-four {
+        left: 33%;
+      }
+
+      &.column-five {
+        left: 45.5%;
+      }
+
+      &.column-six {
+        left: 58%;
+      }
+
+      &.column-seven {
+        left: 70.5%;
+      }
+
+      &.column-eight {
+        left: 83%;
+      }
+    }
+
+    .audio {
+      position: absolute;
+      cursor: pointer;
+      top: 88%;
+      left: 88%;
+      z-index: 25;
+      width: 32px;
+    }
   }
 
   @media screen and (min-width: $desktopBreakpoint) {
@@ -211,6 +319,79 @@
             width: 35%;
           }
         }
+      }
+
+      .user-avatar {
+
+        &.row-one {
+          top: 7.5;
+        }
+
+        &.row-two {
+          top: 20%;
+        }
+
+        &.row-three {
+          top: 32.5%;
+        }
+
+        &.row-four {
+          top: 45%;
+        }
+
+        &.row-five {
+          top: 50%;
+        }
+
+        &.row-six {
+          top: 57%;
+        }
+
+        &.row-seven {
+          top: 75%;
+        }
+
+        &.row-eight {
+          top: 82.5%;
+        }
+
+        &.column-one {
+          left: 2.5%;
+        }
+
+        &.column-two {
+          left: 14.5%;
+        }
+
+        &.column-three {
+          left: 27%;
+        }
+
+        &.column-four {
+          left: 39.5%;
+        }
+
+        &.column-five {
+          left: 52%;
+        }
+
+        &.column-six {
+          left: 64.5%;
+        }
+
+        &.column-seven {
+          left: 77%;
+        }
+
+        &.column-eight {
+          left: 89.5%;
+        }
+      }
+
+      .audio {
+        top: 90%;
+        left: 90%;
+        width: 48px;
       }
 
       .actions {

@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import previewIcon from "../../assets/images/link_preview.svg";
+import micOnIcon from "../../assets/images/mic_on.svg";
+import micOffIcon from "../../assets/images/mic_off.svg";
 
 type RoomObjectProps = {
   objects: Array<any>;
   connectedUsers: Array<any>;
   me: any;
   enterRoom(): void;
+  toggleMute(): void;
 };
 
 export const RoomObjects: React.FC<RoomObjectProps> = ({
   objects,
   enterRoom,
+  toggleMute,
   connectedUsers,
   me
 }) => {
@@ -24,7 +28,7 @@ export const RoomObjects: React.FC<RoomObjectProps> = ({
       const imageUrl = new URL(path, import.meta.url);
 
       if (mobile) {
-        let img = new Image();
+        const img = new Image();
         img.onload = () => {
           const exist = objectsWithWidth.find(
             (o: any) => o.name == object.name
@@ -147,6 +151,14 @@ export const RoomObjects: React.FC<RoomObjectProps> = ({
     return '';
   }
 
+  const getMutedClass = (user: any) => {
+    if (user?.muted) {
+      return 'muted';
+    }
+
+    return '';
+  }
+
   return (
     <div className="container-objects">
       <div className="center">
@@ -161,9 +173,9 @@ export const RoomObjects: React.FC<RoomObjectProps> = ({
           ))}
           {
             connectedUsers?.map((user: any) =>
-              <div key={user._id} className={'user-avatar'}>
-                <div>
-                  <span>{getName(user)}</span>
+              <div key={user._id} className={'user-avatar ' + getClassFromObject(user)}>
+                <div className={getMutedClass(user)}>
+                  <span className={getMutedClass(user)}>{getName(user)}</span>
                 </div>
                 <img
                   src={getImageFromObject(user, true)}
@@ -171,6 +183,8 @@ export const RoomObjects: React.FC<RoomObjectProps> = ({
                 />
               </div>
             )}
+          {me?.user && me.muted && <img src={micOffIcon} className="audio" onClick={toggleMute} />}
+          {me?.user && !me.muted && <img src={micOnIcon} className="audio" onClick={toggleMute} />}
           {(!connectedUsers || connectedUsers?.length === 0) && <div className="preview">
             <img src={previewIcon} alt="Entrar na sala" />
             <button onClick={enterRoom}>Entrar na sala</button>
