@@ -9,9 +9,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { RoomObjects } from "./RoomObjects";
 import { RoomServices } from "../../services/RoomServices";
 import { createPeerConnectionContext } from "../../services/WebSocketServices";
+import { Modal } from "react-bootstrap";
 
 const roomServices = new RoomServices();
 const wsServices = createPeerConnectionContext();
+let userMediaStream: any;
 
 export const RommHome = () => {
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ export const RommHome = () => {
   const [me, setMe] = useState<any>({});
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
-  const [classFromMovement, setClassFromMovement] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const { link } = useParams();
   const userId = localStorage.getItem('id') || '';
 
@@ -48,6 +50,21 @@ export const RommHome = () => {
       });
 
       setObjects(newObjects);
+
+      userMediaStream = await navigator?.mediaDevices?.getUserMedia({
+        video: {
+          width: { min: 640, ideal: 1280 },
+          height: { min: 400, ideal: 1080 },
+          aspectRatio: { ideal: 1.7777 },
+        },
+        audio: true
+      });
+
+      if (document.getElementById('localVideoRef')) {
+        const videoRef: any = document.getElementById('localVideoRef');
+        videoRef.srcObject = userMediaStream;
+      }
+
     } catch (e) {
       console.log("Ocorreu um erro ao buscar dados da sala", e);
     }
@@ -66,10 +83,15 @@ export const RommHome = () => {
   }, []);
 
   const enterRoom = () => {
+    if (!userMediaStream) {
+      return setShowModal(true);
+    }
+
     if (!link || !userId) {
       return navigate('/');
     }
     wsServices.joinRoom(link, userId);
+    wsServices.onCallMade();
     wsServices.onUpdateUserList(async (users: any) => {
       if (users) {
         setConnectedUsers(users);
@@ -80,6 +102,16 @@ export const RommHome = () => {
           setMe(me);
           localStorage.setItem('me', JSON.stringify(me));
         }
+
+        const getUsersWithoutMe = users.filter((u: any) => u.user !== userId);
+        for (const user of getUsersWithoutMe) {
+          wsServices.addPeerConnection(user.clientId, userMediaStream, (_stream: any) => {
+            if (document.getElementById(user.clientId)) {
+              const videoRef: any = document.getElementById(user.clientId);
+              videoRef.srcObject = _stream;
+            }
+          });
+        }
       }
     });
     wsServices.onRemoveUserList((socketId: any) => {
@@ -87,8 +119,24 @@ export const RommHome = () => {
       const connectedUsers = JSON.parse(connectedStr);
       const filtered = connectedUsers?.filter((u: any) => u.clientId !== socketId);
       setConnectedUsers(filtered);
+      wsServices.removePeerConnection(socketId);
     });
-  };
+
+    wsServices.onAddUser((user: any) => {
+      console.log('onAddUser', user);
+
+      wsServices.addPeerConnection(user, userMediaStream, (_stream: any) => {
+        if (document.getElementById(user)) {
+          const videoRef: any = document.getElementById(user);
+          videoRef.srcObject = _stream;
+        }
+      });
+
+      wsServices.callUser(user);
+    });
+
+    wsServices.onAnswerMade((socket: any) => wsServices.callUser(socket));
+  }
 
   const toggleMute = () => {
     const payload = {
@@ -109,8 +157,6 @@ export const RommHome = () => {
         userId,
         link
       } as any;
-
-      setClassFromMovement(true);
 
       switch (event.key) {
         case 'ArrowUp':
@@ -162,6 +208,10 @@ export const RommHome = () => {
     navigator.clipboard.writeText(window.location.href);
   };
 
+  const getUsersWithoutMe = () => {
+    return connectedUsers.filter((u: any) => u.user !== userId);
+  }
+
   return (
     <>
       <div className="container-principal">
@@ -177,6 +227,12 @@ export const RommHome = () => {
                   <img src={copyIcon} />
                 </div>
                 <p style={{ color }}>{name}</p>
+
+                <audio id="localVideoRef" playsInline autoPlay muted />
+                {getUsersWithoutMe()?.map((user: any) =>
+                  <audio key={user.clientId} id="localVideoRef" playsInline autoPlay muted={user?.muted} />
+                )}
+
               </div>
               <RoomObjects
                 objects={objects}
@@ -212,6 +268,23 @@ export const RommHome = () => {
           )}
         </div>
       </div>
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        className="container-modal"
+      >
+        <Modal.Body>
+          <div className="content">
+            <div className="center">
+              <span>Aviso!</span>
+              <p>Habilite a permissão de áudio e vídeo para participar das reuniões.</p>
+            </div>
+            <div className="actions">
+              <button onClick={() => setShowModal(false)}>Ok</button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </>
   );
 };
