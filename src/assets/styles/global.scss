@@ -116,7 +116,7 @@ button {
   }
 }
 
-.oculto {
+.display-none {
   display: none !important;
 }
 
@@ -166,3 +166,4 @@ body {
 @import "./object_picker.scss";
 @import "./objects.scss";
 @import "./room.scss";
+@import "./loading.scss";

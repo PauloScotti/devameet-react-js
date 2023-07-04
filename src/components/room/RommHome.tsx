@@ -23,6 +23,7 @@ export const RommHome = () => {
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [isVideo, setIsVideo] = useState(true);
   const { link } = useParams();
   const userId = localStorage.getItem('id') || '';
 
@@ -63,6 +64,7 @@ export const RommHome = () => {
       if (document.getElementById('localVideoRef')) {
         const videoRef: any = document.getElementById('localVideoRef');
         videoRef.srcObject = userMediaStream;
+        console.log(videoRef.srcObject)
       }
 
     } catch (e) {
@@ -123,7 +125,6 @@ export const RommHome = () => {
     });
 
     wsServices.onAddUser((user: any) => {
-      console.log('onAddUser', user);
 
       wsServices.addPeerConnection(user, userMediaStream, (_stream: any) => {
         if (document.getElementById(user)) {
@@ -146,6 +147,34 @@ export const RommHome = () => {
     }
 
     wsServices.updateUserMute(payload);
+  }
+
+  const toggleVideo = () => {
+    const payload = {
+      userId,
+      link,
+      video: !me.video
+    }
+
+    if (me?.video === true) {
+      userMediaStream.getTracks().forEach((track: { stop: () => void; }) => {
+        track.stop();
+      });
+
+      setIsVideo(!me.video);
+      wsServices.updateUserVideo(payload);
+    } else {
+
+      if (document.getElementById('localVideoRef')) {
+        const videoRef: any = document.getElementById('localVideoRef');
+        videoRef.srcObject = userMediaStream;
+        console.log(videoRef.srcObject)
+      }
+
+      setIsVideo(!me.video);
+      wsServices.updateUserVideo(payload);
+    }
+
   }
 
   const doMovement = (event: any) => {
@@ -228,11 +257,6 @@ export const RommHome = () => {
                 </div>
                 <p style={{ color }}>{name}</p>
 
-                <audio id="localVideoRef" playsInline autoPlay muted />
-                {getUsersWithoutMe()?.map((user: any) =>
-                  <audio key={user.clientId} id="localVideoRef" playsInline autoPlay muted={user?.muted} />
-                )}
-
               </div>
               <RoomObjects
                 objects={objects}
@@ -240,7 +264,17 @@ export const RommHome = () => {
                 connectedUsers={connectedUsers}
                 me={me}
                 toggleMute={toggleMute}
+                toggleVideo={toggleVideo}
               />
+
+              <div className="videos">
+                {/* {isVideo ? <video id="localVideoRef" playsInline autoPlay muted /> : <audio id="localVideoRef" playsInline autoPlay muted />} */}
+                <video id="localVideoRef" playsInline autoPlay muted />
+                {getUsersWithoutMe()?.map((user: any) =>
+                  // user?.video ? <video key={user.clientId} id={user.clientId} playsInline autoPlay muted={user?.muted} /> : <audio key={user.clientId} id={user.clientId} playsInline autoPlay muted={user?.muted} />
+                  <video key={user.clientId} id={user.clientId} playsInline autoPlay muted={user?.muted} />
+                )}
+              </div>
               {mobile && me?.user &&
                 <div className="movement">
                   <div className={"button"} onClick={() => doMovement({ key: 'ArrowUp' })}>

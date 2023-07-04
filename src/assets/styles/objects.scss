@@ -218,6 +218,10 @@
       z-index: 25;
       width: 32px;
     }
+
+    .video {
+      display: none;
+    }
   }
 
   @media screen and (min-width: $desktopBreakpoint) {
@@ -391,6 +395,16 @@
       .audio {
         top: 90%;
         left: 90%;
+        width: 48px;
+      }
+
+      .video {
+        display: block;
+        position: absolute;
+        cursor: pointer;
+        top: 90%;
+        left: 81%;
+        z-index: 25;
         width: 48px;
       }
 

@@ -53,6 +53,25 @@
       cursor: pointer;
       margin-left: 4px;
     }
+
+    video {
+      width: 80px;
+      border-radius: 20%;
+    }
+
+    .myVideo {
+      position: absolute;
+      right: 24px;
+      bottom: 10%;
+      z-index: 100;
+    }
+
+    .othersVideo {
+      position: absolute;
+      right: 24px;
+      top: 9.5%;
+      z-index: 100;
+    }
   }
 
   .movement {
@@ -106,6 +125,31 @@
       margin: 0;
       margin-left: 24px;
       padding-bottom: 24px;
+
+      video {
+        width: 250px;
+        border-radius: 10%;
+      }
+    }
+
+    .videos {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      margin-left: 12px;
+      flex-wrap: wrap;
+      height: 100%;
+      max-height: 640px;
+      width: 600px;
+
+      video {
+        width: 250px;
+        border-radius: 12px;
+      }
+
+      video:nth-last-child(2n) {
+        margin-right: 10px;
+      }
     }
   }
 }

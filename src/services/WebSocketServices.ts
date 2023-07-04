@@ -41,8 +41,11 @@ class PeerConnectionSession {
     }
 
     updateUserMute(data: any) {
-        console.log('data ', data);
         this.socket.emit('toggl-mute-user', data);
+    }
+
+    updateUserVideo(data: any) {
+        this.socket.emit('toggl-video-user', data);
     }
 
     addPeerConnection(id: string, stream: any, callback: any) {
@@ -62,7 +65,7 @@ class PeerConnectionSession {
                 fn && fn(event, id);
             }
 
-            this.peerConnections[id].addEventListener('connectionstatechange', this.peerConnections[id]);
+            this.peerConnections[id].addEventListener('connectionstatechange', this.listener[id]);
 
             this.peerConnections[id].ontrack = ({ streams: [stream] }: any) => {
                 callback(stream);
@@ -72,7 +75,7 @@ class PeerConnectionSession {
 
     removePeerConnection(id: string) {
         if (this.peerConnections[id]) {
-            this.peerConnections[id].removeEventListener('connectionstatechange', this.peerConnections[id]);
+            this.peerConnections[id].removeEventListener('connectionstatechange', this.listener[id]);
             delete this.peerConnections[id];
             delete this.listener[id];
         }
@@ -85,7 +88,6 @@ class PeerConnectionSession {
     }
 
     async callUser(to: any) {
-        console.log('callUser to:', to, this.peerConnections[to].iceConnectionState);
         if (this.peerConnections[to].iceConnectionState === 'new') {
             const offer = await this.peerConnections[to].createOffer();
             await this.peerConnections[to].setLocalDescription(new RTCSessionDescription(offer));
@@ -95,7 +97,6 @@ class PeerConnectionSession {
 
     async onCallMade() {
         this.socket.on(`call-made`, async (data: any) => {
-            console.log('call-made:', data.socket);
 
             const selectedPeer = this.peerConnections[data.socket];
             if (selectedPeer) {
@@ -113,7 +114,6 @@ class PeerConnectionSession {
 
     onAnswerMade(callback: any) {
         this.socket.on('answer-made', async (data: any) => {
-            console.log('answer-made:', data.socket);
             await this.peerConnections[data.socket].setRemoteDescription(new RTCSessionDescription(data.answer));
             callback(data.socket);
         })

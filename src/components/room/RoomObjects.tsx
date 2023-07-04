@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import previewIcon from "../../assets/images/link_preview.svg";
 import micOnIcon from "../../assets/images/mic_on.svg";
 import micOffIcon from "../../assets/images/mic_off.svg";
+import videoOnIcon from "../../assets/images/camera_on.svg";
+import videoOffIcon from "../../assets/images/camera_off.svg";
 
 type RoomObjectProps = {
   objects: Array<any>;
@@ -9,12 +11,14 @@ type RoomObjectProps = {
   me: any;
   enterRoom(): void;
   toggleMute(): void;
+  toggleVideo(): void;
 };
 
 export const RoomObjects: React.FC<RoomObjectProps> = ({
   objects,
   enterRoom,
   toggleMute,
+  toggleVideo,
   connectedUsers,
   me
 }) => {
@@ -185,6 +189,8 @@ export const RoomObjects: React.FC<RoomObjectProps> = ({
             )}
           {me?.user && me.muted && <img src={micOffIcon} className="audio" onClick={toggleMute} />}
           {me?.user && !me.muted && <img src={micOnIcon} className="audio" onClick={toggleMute} />}
+          {me?.user && me.video && <img src={videoOnIcon} className="video" onClick={toggleVideo} />}
+          {me?.user && !me.video && <img src={videoOffIcon} className="video" onClick={toggleVideo} />}
           {(!connectedUsers || connectedUsers?.length === 0) && <div className="preview">
             <img src={previewIcon} alt="Entrar na sala" />
             <button onClick={enterRoom}>Entrar na sala</button>
