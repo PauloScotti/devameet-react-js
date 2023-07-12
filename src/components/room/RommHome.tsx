@@ -64,7 +64,6 @@ export const RommHome = () => {
       if (document.getElementById('localVideoRef')) {
         const videoRef: any = document.getElementById('localVideoRef');
         videoRef.srcObject = userMediaStream;
-        console.log(videoRef.srcObject)
       }
 
     } catch (e) {
@@ -149,32 +148,74 @@ export const RommHome = () => {
     wsServices.updateUserMute(payload);
   }
 
-  const toggleVideo = () => {
+  const videoOff = async () => {
     const payload = {
       userId,
       link,
       video: !me.video
     }
 
-    if (me?.video === true) {
-      userMediaStream.getTracks().forEach((track: { stop: () => void; }) => {
-        track.stop();
-      });
+    userMediaStream.getTracks().forEach((track: { stop: () => void; }) => {
+      track.stop();
+    });
 
-      setIsVideo(!me.video);
-      wsServices.updateUserVideo(payload);
-    } else {
 
-      if (document.getElementById('localVideoRef')) {
-        const videoRef: any = document.getElementById('localVideoRef');
-        videoRef.srcObject = userMediaStream;
-        console.log(videoRef.srcObject)
-      }
+    userMediaStream = await navigator?.mediaDevices?.getUserMedia({
+      video: false,
+      audio: true
+    });
 
-      setIsVideo(!me.video);
-      wsServices.updateUserVideo(payload);
+    setIsVideo(!me.video);
+    wsServices.updateUserVideo(payload);
+  }
+
+  const videoOn = async () => {
+    const payload = {
+      userId,
+      link,
+      video: !me.video
     }
 
+    userMediaStream = await navigator?.mediaDevices?.getUserMedia({
+      video: {
+        width: { min: 640, ideal: 1280 },
+        height: { min: 400, ideal: 1080 },
+        aspectRatio: { ideal: 1.7777 },
+      },
+      audio: true
+    });
+
+    if (document.getElementById('localVideoRef')) {
+      const videoRef: any = document.getElementById('localVideoRef');
+      videoRef.srcObject = userMediaStream;
+    }
+
+    wsServices.onCallMade();
+    wsServices.onUpdateUserList(async (users: any) => {
+      if (users) {
+        setConnectedUsers(users);
+        localStorage.setItem('connectedUsers', JSON.stringify(users));
+
+        const me = users.find((u: any) => u.user === userId);
+        if (me) {
+          setMe(me);
+          localStorage.setItem('me', JSON.stringify(me));
+        }
+
+        const getUsersWithoutMe = users.filter((u: any) => u.user !== userId);
+        for (const user of getUsersWithoutMe) {
+          wsServices.addPeerConnection(user.clientId, userMediaStream, (_stream: any) => {
+            if (document.getElementById(user.clientId)) {
+              const videoRef: any = document.getElementById(user.clientId);
+              videoRef.srcObject = _stream;
+            }
+          });
+        }
+      }
+    });
+
+    setIsVideo(!me.video);
+    wsServices.updateUserVideo(payload);
   }
 
   const doMovement = (event: any) => {
@@ -264,14 +305,12 @@ export const RommHome = () => {
                 connectedUsers={connectedUsers}
                 me={me}
                 toggleMute={toggleMute}
-                toggleVideo={toggleVideo}
+                toggleVideo={isVideo ? videoOff : videoOn}
               />
 
               <div className="videos">
-                {/* {isVideo ? <video id="localVideoRef" playsInline autoPlay muted /> : <audio id="localVideoRef" playsInline autoPlay muted />} */}
                 <video id="localVideoRef" playsInline autoPlay muted />
                 {getUsersWithoutMe()?.map((user: any) =>
-                  // user?.video ? <video key={user.clientId} id={user.clientId} playsInline autoPlay muted={user?.muted} /> : <audio key={user.clientId} id={user.clientId} playsInline autoPlay muted={user?.muted} />
                   <video key={user.clientId} id={user.clientId} playsInline autoPlay muted={user?.muted} />
                 )}
               </div>
