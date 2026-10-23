@@ -22,6 +22,19 @@ const videoConstraints = {
   aspectRatio: { ideal: 1.7777 },
 };
 
+const MEDIA_PERMISSION_MESSAGE = 'Habilite a permissão de áudio para participar das reuniões.';
+const CAMERA_PERMISSION_MESSAGE = 'Não foi possível acessar a câmera. Verifique a permissão de vídeo.';
+
+// Câmera é opcional: sem ela (ou sem permissão) entra só com áudio.
+const getUserMediaStream = async () => {
+  try {
+    return await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
+  } catch (e) {
+    console.log("Câmera indisponível, entrando apenas com áudio", e);
+    return await navigator.mediaDevices.getUserMedia({ audio: true });
+  }
+};
+
 const setLocalVideo = () => {
   const videoRef = document.getElementById('localVideoRef') as HTMLVideoElement | null;
   if (videoRef) {
@@ -36,7 +49,8 @@ export const RommHome = () => {
   const [me, setMe] = useState<any>({});
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [localVideoOn, setLocalVideoOn] = useState(false);
   const togglingVideo = useRef(false);
   const { link } = useParams();
   const userId = localStorage.getItem('id') || '';
@@ -66,11 +80,8 @@ export const RommHome = () => {
 
       setObjects(newObjects);
 
-      userMediaStream = await navigator?.mediaDevices?.getUserMedia({
-        video: videoConstraints,
-        audio: true
-      });
-
+      userMediaStream = await getUserMediaStream();
+      setLocalVideoOn(userMediaStream.getVideoTracks().length > 0);
       setLocalVideo();
     } catch (e) {
       console.log("Ocorreu um erro ao buscar dados da sala", e);
@@ -91,13 +102,13 @@ export const RommHome = () => {
 
   const enterRoom = () => {
     if (!userMediaStream) {
-      return setShowModal(true);
+      return setModalMessage(MEDIA_PERMISSION_MESSAGE);
     }
 
     if (!link || !userId) {
       return navigate('/');
     }
-    wsServices.joinRoom(link, userId);
+    wsServices.joinRoom(link, userMediaStream.getVideoTracks().length > 0);
     wsServices.onCallMade();
     wsServices.onUpdateUserList(async (users: any) => {
       if (users) {
@@ -177,10 +188,11 @@ export const RommHome = () => {
       }
 
       setLocalVideo();
+      setLocalVideoOn(video);
       wsServices.updateUserVideo({ video });
     } catch (e) {
       console.log("Ocorreu um erro ao alternar a câmera", e);
-      setShowModal(true);
+      setModalMessage(CAMERA_PERMISSION_MESSAGE);
     } finally {
       togglingVideo.current = false;
     }
@@ -246,6 +258,12 @@ export const RommHome = () => {
     navigator.clipboard.writeText(window.location.href);
   };
 
+  const localUser = {
+    name: localStorage.getItem('name'),
+    avatar: localStorage.getItem('avatar'),
+    video: localVideoOn,
+  };
+
   const getUsersWithoutMe = () => {
     return connectedUsers.filter((u: any) => u.user !== userId);
   }
@@ -277,7 +295,7 @@ export const RommHome = () => {
               />
 
               <div className="videos">
-                <VideoTile id="localVideoRef" user={me} muted />
+                <VideoTile id="localVideoRef" user={me?.user ? me : localUser} muted />
                 {getUsersWithoutMe()?.map((user: any) =>
                   <VideoTile key={user.clientId} id={user.clientId} user={user} muted={user?.muted} />
                 )}
@@ -310,18 +328,18 @@ export const RommHome = () => {
         </div>
       </div>
       <Modal
-        show={showModal}
-        onHide={() => setShowModal(false)}
+        show={!!modalMessage}
+        onHide={() => setModalMessage('')}
         className="container-modal"
       >
         <Modal.Body>
           <div className="content">
             <div className="center">
               <span>Aviso!</span>
-              <p>Habilite a permissão de áudio e vídeo para participar das reuniões.</p>
+              <p>{modalMessage}</p>
             </div>
             <div className="actions">
-              <button onClick={() => setShowModal(false)}>Ok</button>
+              <button onClick={() => setModalMessage('')}>Ok</button>
             </div>
           </div>
         </Modal.Body>

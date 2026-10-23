@@ -7,7 +7,6 @@ function capitalizeFirstLetter(string: string): string {
 class PeerConnectionSession {
 
     _room?: string;
-    _userId?: string;
     socket: any;
     peerConnections = {} as any;
     remoteStreams = {} as Record<string, MediaStream>;
@@ -19,10 +18,12 @@ class PeerConnectionSession {
         this.socket = socket
     }
 
-    joinRoom(link: string, userId: string) {
+    joinRoom(link: string, video: boolean) {
         this._room = link;
-        this._userId = userId;
-        this.socket.emit('join', { link, userId });
+        if (!this.socket.connected) {
+            this.socket.connect();
+        }
+        this.socket.emit('join', { link, video });
     }
 
     onUpdateUserList(callback: any) {
@@ -147,7 +148,11 @@ class PeerConnectionSession {
 export const createPeerConnectionContext = () => {
     const { VITE_PUBLIC_WS_URL } = import.meta.env;
 
-    const socket = io(VITE_PUBLIC_WS_URL);
+    // Conecta só ao entrar na sala, lendo o token atual (o usuário pode ter logado depois do carregamento).
+    const socket = io(VITE_PUBLIC_WS_URL, {
+        autoConnect: false,
+        auth: (cb: (data: object) => void) => cb({ token: localStorage.getItem('token') }),
+    });
 
     return new PeerConnectionSession(socket);
 }
