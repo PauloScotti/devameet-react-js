@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import emptyIcon from "../../assets/images/empty_list.svg";
 import copyIcon from "../../assets/images/copy.svg";
 import iconUp from "../../assets/images/chevron_up.svg";
@@ -10,10 +10,24 @@ import { RoomObjects } from "./RoomObjects";
 import { RoomServices } from "../../services/RoomServices";
 import { createPeerConnectionContext } from "../../services/WebSocketServices";
 import { Modal } from "react-bootstrap";
+import { VideoTile } from "./VideoTile";
 
 const roomServices = new RoomServices();
 const wsServices = createPeerConnectionContext();
 let userMediaStream: any;
+
+const videoConstraints = {
+  width: { min: 640, ideal: 1280 },
+  height: { min: 400, ideal: 1080 },
+  aspectRatio: { ideal: 1.7777 },
+};
+
+const setLocalVideo = () => {
+  const videoRef = document.getElementById('localVideoRef') as HTMLVideoElement | null;
+  if (videoRef) {
+    videoRef.srcObject = userMediaStream;
+  }
+};
 
 export const RommHome = () => {
   const navigate = useNavigate();
@@ -23,7 +37,7 @@ export const RommHome = () => {
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [isVideo, setIsVideo] = useState(true);
+  const togglingVideo = useRef(false);
   const { link } = useParams();
   const userId = localStorage.getItem('id') || '';
 
@@ -53,19 +67,11 @@ export const RommHome = () => {
       setObjects(newObjects);
 
       userMediaStream = await navigator?.mediaDevices?.getUserMedia({
-        video: {
-          width: { min: 640, ideal: 1280 },
-          height: { min: 400, ideal: 1080 },
-          aspectRatio: { ideal: 1.7777 },
-        },
+        video: videoConstraints,
         audio: true
       });
 
-      if (document.getElementById('localVideoRef')) {
-        const videoRef: any = document.getElementById('localVideoRef');
-        videoRef.srcObject = userMediaStream;
-      }
-
+      setLocalVideo();
     } catch (e) {
       console.log("Ocorreu um erro ao buscar dados da sala", e);
     }
@@ -148,74 +154,36 @@ export const RommHome = () => {
     wsServices.updateUserMute(payload);
   }
 
-  const videoOff = async () => {
-    const payload = {
-      userId,
-      link,
-      video: !me.video
+  const toggleVideo = async () => {
+    if (!userMediaStream || togglingVideo.current) {
+      return;
     }
 
-    userMediaStream.getTracks().forEach((track: { stop: () => void; }) => {
-      track.stop();
-    });
+    togglingVideo.current = true;
+    const video = me.video === false;
 
-
-    userMediaStream = await navigator?.mediaDevices?.getUserMedia({
-      video: false,
-      audio: true
-    });
-
-    setIsVideo(!me.video);
-    wsServices.updateUserVideo(payload);
-  }
-
-  const videoOn = async () => {
-    const payload = {
-      userId,
-      link,
-      video: !me.video
-    }
-
-    userMediaStream = await navigator?.mediaDevices?.getUserMedia({
-      video: {
-        width: { min: 640, ideal: 1280 },
-        height: { min: 400, ideal: 1080 },
-        aspectRatio: { ideal: 1.7777 },
-      },
-      audio: true
-    });
-
-    if (document.getElementById('localVideoRef')) {
-      const videoRef: any = document.getElementById('localVideoRef');
-      videoRef.srcObject = userMediaStream;
-    }
-
-    wsServices.onCallMade();
-    wsServices.onUpdateUserList(async (users: any) => {
-      if (users) {
-        setConnectedUsers(users);
-        localStorage.setItem('connectedUsers', JSON.stringify(users));
-
-        const me = users.find((u: any) => u.user === userId);
-        if (me) {
-          setMe(me);
-          localStorage.setItem('me', JSON.stringify(me));
-        }
-
-        const getUsersWithoutMe = users.filter((u: any) => u.user !== userId);
-        for (const user of getUsersWithoutMe) {
-          wsServices.addPeerConnection(user.clientId, userMediaStream, (_stream: any) => {
-            if (document.getElementById(user.clientId)) {
-              const videoRef: any = document.getElementById(user.clientId);
-              videoRef.srcObject = _stream;
-            }
-          });
-        }
+    try {
+      if (video) {
+        const cameraStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
+        const [track] = cameraStream.getVideoTracks();
+        userMediaStream.addTrack(track);
+        await wsServices.replaceVideoTrack(track);
+      } else {
+        userMediaStream.getVideoTracks().forEach((track: MediaStreamTrack) => {
+          track.stop();
+          userMediaStream.removeTrack(track);
+        });
+        await wsServices.replaceVideoTrack(null);
       }
-    });
 
-    setIsVideo(!me.video);
-    wsServices.updateUserVideo(payload);
+      setLocalVideo();
+      wsServices.updateUserVideo({ video });
+    } catch (e) {
+      console.log("Ocorreu um erro ao alternar a câmera", e);
+      setShowModal(true);
+    } finally {
+      togglingVideo.current = false;
+    }
   }
 
   const doMovement = (event: any) => {
@@ -305,13 +273,13 @@ export const RommHome = () => {
                 connectedUsers={connectedUsers}
                 me={me}
                 toggleMute={toggleMute}
-                toggleVideo={isVideo ? videoOff : videoOn}
+                toggleVideo={toggleVideo}
               />
 
               <div className="videos">
-                <video id="localVideoRef" playsInline autoPlay muted />
+                <VideoTile id="localVideoRef" user={me} muted />
                 {getUsersWithoutMe()?.map((user: any) =>
-                  <video key={user.clientId} id={user.clientId} playsInline autoPlay muted={user?.muted} />
+                  <VideoTile key={user.clientId} id={user.clientId} user={user} muted={user?.muted} />
                 )}
               </div>
               {mobile && me?.user &&

@@ -10,6 +10,7 @@ class PeerConnectionSession {
     _userId?: string;
     socket: any;
     peerConnections = {} as any;
+    remoteStreams = {} as Record<string, MediaStream>;
     senders = [] as any;
     listener = [] as any;
     ons = [] as any;
@@ -31,8 +32,8 @@ class PeerConnectionSession {
     }
 
     onRemoveUserList(callback: any) {
-        this.socket.on(`${this._room}-remove-user`, ({ socktId }: any) => {
-            callback(socktId);
+        this.socket.on(`${this._room}-remove-user`, ({ socketId }: any) => {
+            callback(socketId);
         });
     }
 
@@ -59,6 +60,11 @@ class PeerConnectionSession {
                 this.senders.push(this.peerConnections[id].addTrack(track, stream));
             });
 
+            // Câmera desligada: reserva o canal de vídeo para ligar depois via replaceTrack, sem renegociar.
+            if (stream.getVideoTracks().length === 0) {
+                this.peerConnections[id].addTransceiver('video', { direction: 'sendrecv', streams: [stream] });
+            }
+
             this.listener[id] = (event: any) => {
                 const on = '_on' + capitalizeFirstLetter(this.peerConnections[id].connectionState);
                 const fn = this.ons[on];
@@ -67,8 +73,11 @@ class PeerConnectionSession {
 
             this.peerConnections[id].addEventListener('connectionstatechange', this.listener[id]);
 
-            this.peerConnections[id].ontrack = ({ streams: [stream] }: any) => {
-                callback(stream);
+            // Stream próprio por peer: o track de vídeo pode chegar sem msid quando o peer entrou com a câmera desligada.
+            this.remoteStreams[id] = new MediaStream();
+            this.peerConnections[id].ontrack = ({ track }: RTCTrackEvent) => {
+                this.remoteStreams[id].addTrack(track);
+                callback(this.remoteStreams[id]);
             }
         }
     }
@@ -76,9 +85,20 @@ class PeerConnectionSession {
     removePeerConnection(id: string) {
         if (this.peerConnections[id]) {
             this.peerConnections[id].removeEventListener('connectionstatechange', this.listener[id]);
+            this.peerConnections[id].close();
             delete this.peerConnections[id];
+            delete this.remoteStreams[id];
             delete this.listener[id];
         }
+    }
+
+    async replaceVideoTrack(track: MediaStreamTrack | null) {
+        const videoSenders = Object.values(this.peerConnections)
+            .flatMap((pc: any) => pc.getTransceivers())
+            .filter((transceiver: RTCRtpTransceiver) => transceiver.receiver.track.kind === 'video')
+            .map((transceiver: RTCRtpTransceiver) => transceiver.sender);
+
+        await Promise.all(videoSenders.map((sender: RTCRtpSender) => sender.replaceTrack(track)));
     }
 
     onAddUser(callback: any) {
@@ -101,6 +121,10 @@ class PeerConnectionSession {
             const selectedPeer = this.peerConnections[data.socket];
             if (selectedPeer) {
                 await selectedPeer.setRemoteDescription(new RTCSessionDescription(data.offer));
+                // Sem track local de vídeo o transceiver criado pela oferta fica recvonly; libera o envio para o replaceTrack.
+                selectedPeer.getTransceivers()
+                    .filter((t: RTCRtpTransceiver) => t.receiver.track.kind === 'video' && t.direction === 'recvonly')
+                    .forEach((t: RTCRtpTransceiver) => { t.direction = 'sendrecv'; });
                 const answer = await selectedPeer.createAnswer();
                 await selectedPeer.setLocalDescription(new RTCSessionDescription(answer));
                 this.socket.emit('make-answer', {

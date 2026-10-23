@@ -189,8 +189,8 @@ export const RoomObjects: React.FC<RoomObjectProps> = ({
             )}
           {me?.user && me.muted && <img src={micOffIcon} className="audio" onClick={toggleMute} />}
           {me?.user && !me.muted && <img src={micOnIcon} className="audio" onClick={toggleMute} />}
-          {me?.user && me.video && <img src={videoOnIcon} className="video" onClick={toggleVideo} />}
-          {me?.user && !me.video && <img src={videoOffIcon} className="video" onClick={toggleVideo} />}
+          {me?.user && me.video !== false && <img src={videoOnIcon} className="video" onClick={toggleVideo} />}
+          {me?.user && me.video === false && <img src={videoOffIcon} className="video" onClick={toggleVideo} />}
           {(!connectedUsers || connectedUsers?.length === 0) && <div className="preview">
             <img src={previewIcon} alt="Entrar na sala" />
             <button onClick={enterRoom}>Entrar na sala</button>

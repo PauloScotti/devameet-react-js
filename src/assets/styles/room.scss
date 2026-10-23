@@ -138,17 +138,41 @@
       justify-content: center;
       margin-left: 12px;
       flex-wrap: wrap;
+      gap: 10px;
       height: 100%;
       max-height: 640px;
       width: 600px;
 
-      video {
+      .video-tile {
         width: 250px;
+        aspect-ratio: 16 / 9;
         border-radius: 12px;
-      }
+        overflow: hidden;
+        background-color: #1c2132;
 
-      video:nth-last-child(2n) {
-        margin-right: 10px;
+        video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        video[hidden] {
+          display: none;
+        }
+
+        .video-off {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          height: 100%;
+          color: #fff;
+
+          img {
+            max-height: 65%;
+          }
+        }
       }
     }
   }
