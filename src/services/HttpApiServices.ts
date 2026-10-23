@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance } from "axios";
 import { LoadingHelper } from "../components/helpers/LoadingHelper";
+import { SessionHelper } from "../components/helpers/SessionHelper";
 
 export class HttpApiServices {
     axios: AxiosInstance;
@@ -26,13 +27,23 @@ export class HttpApiServices {
             return config;
         });
 
-        this.axios.interceptors.response.use((response) => {
+        const finishRequest = () => {
             this.countReq--;
             if (this.countReq === 0) {
                 LoadingHelper.displayOff();
             }
+        };
 
+        this.axios.interceptors.response.use((response) => {
+            finishRequest();
             return response;
+        }, (error) => {
+            finishRequest();
+            if (error?.response?.status === 401 && localStorage.getItem('token')) {
+                SessionHelper.expire();
+            }
+
+            return Promise.reject(error);
         });
     }
 

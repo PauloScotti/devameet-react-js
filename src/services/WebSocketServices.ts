@@ -1,8 +1,12 @@
 import { io } from 'socket.io-client';
+import { SessionHelper } from '../components/helpers/SessionHelper';
 
 function capitalizeFirstLetter(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+// Mensagem enviada pelo backend quando o token do handshake é recusado.
+const SOCKET_UNAUTHORIZED = 'Token de acesso inválido.';
 
 class PeerConnectionSession {
 
@@ -16,6 +20,11 @@ class PeerConnectionSession {
 
     constructor(socket: any) {
         this.socket = socket
+        this.socket.on('connect_error', (error: Error) => {
+            if (error?.message === SOCKET_UNAUTHORIZED) {
+                SessionHelper.expire();
+            }
+        });
     }
 
     joinRoom(link: string, video: boolean) {
