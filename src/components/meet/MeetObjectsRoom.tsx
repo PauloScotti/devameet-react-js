@@ -141,7 +141,7 @@ export const MeetObjectsRoom: React.FC<MeetObjectsRoomType> = ({ objects, select
                     {
                         objects?.map((object: any) =>
                             <img key={object._id}
-                                onClick={() => selected?.name === object.name ? setSelected(null) : setSelected!!(object)}
+                                onClick={() => setSelected?.(selected?.name === object.name ? null : object)}
                                 src={getImageFromObject(object)}
                                 className={getClassFromObject(object)}
                                 style={{ zIndex: object.zIndex }}

@@ -1,8 +1,6 @@
 import logo from '../assets/images/logo.svg';
 import loginIcon from '../assets/images/mail.svg';
 import userIcon from '../assets/images/user.svg';
-import editAvatar from '../assets/images/edit_avatar.svg';
-import avatar from '../assets/images/avatar.svg';
 import passwordIcon from '../assets/images/key.svg';
 import { PublicInput } from '../components/general/PublicInput';
 import { useState } from 'react';
@@ -30,10 +28,14 @@ export const Register = () => {
             if (!image || image.trim().length < 1
                 || !email || email.trim().length < 5
                 || !name || name.trim().length < 2
-                || !password || password.trim().length < 4
-                || !confirm || confirm.trim().length < 4
+                || !password || !confirm
             ) {
                 return setError('Favor preencher os campos corretamente');
+            }
+
+            // A API exige pelo menos 8 caracteres em senhas novas.
+            if (password.length < 8) {
+                return setError('A senha precisa ter pelo menos 8 caracteres');
             }
 
             if (password !== confirm) {

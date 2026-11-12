@@ -9,7 +9,7 @@ type AvatarInputProps = {
     setImage(s: string): void
 }
 
-export const AvatarInput: React.FC<AvatarInputProps> = ({ image, setImage, alt }) => {
+export const AvatarInput: React.FC<AvatarInputProps> = ({ image, setImage }) => {
     const [showModal, setShowModal] = useState(false);
     const [selected, setSelected] = useState('');
 

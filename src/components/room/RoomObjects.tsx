@@ -7,11 +7,12 @@ import videoOffIcon from "../../assets/images/camera_off.svg";
 
 type RoomObjectProps = {
   objects: Array<any>;
-  connectedUsers: Array<any>;
-  me: any;
+  // Na prévia da sala (lista de reuniões) só os objetos e o botão de entrar existem.
+  connectedUsers?: Array<any>;
+  me?: any;
   enterRoom(): void;
-  toggleMute(): void;
-  toggleVideo(): void;
+  toggleMute?(): void;
+  toggleVideo?(): void;
 };
 
 export const RoomObjects: React.FC<RoomObjectProps> = ({
